@@ -19,6 +19,11 @@ package io.github.rutaleivanpaul.propertylistings.domain.model
  * @property type the kind of accommodation.
  * @property city denormalised from the response-level location.
  * @property country denormalised from the response-level location.
+ * @property district neighbourhood within the city (e.g. "Temple Bar"); empty when not provided.
+ * @property address street address, ready to display (e.g. "29 Bachelors Walk, Dublin 1"); empty
+ *   when not provided.
+ * @property ratingBreakdown per-aspect sub-scores shown on the detail screen; empty when the
+ *   property carries none. List-only screens ignore it.
  * @property imageUrls gallery image URLs; may be empty (images are optional/bonus).
  */
 data class Property(
@@ -33,6 +38,9 @@ data class Property(
     val city: String,
     val country: String,
     val imageUrls: List<String>,
+    val district: String = "",
+    val address: String = "",
+    val ratingBreakdown: List<RatingScore> = emptyList(),
 ) {
     /**
      * Whether this property has a meaningful rating to display.
