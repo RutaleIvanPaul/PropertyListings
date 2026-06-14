@@ -42,6 +42,11 @@ android {
     buildFeatures {
         compose = true
     }
+    testOptions {
+        // Let JVM unit tests call android.util.Log (used for silent telemetry failure) without
+        // a "not mocked" error; the stubbed methods simply return defaults.
+        unitTests.isReturnDefaultValues = true
+    }
 }
 
 dependencies {
