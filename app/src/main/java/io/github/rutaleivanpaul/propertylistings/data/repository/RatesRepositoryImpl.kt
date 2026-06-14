@@ -55,9 +55,12 @@ class RatesRepositoryImpl @Inject constructor(
                 statsReporter.report(StatsAction.LOAD_DETAILS, timeProvider.nowMillis() - startMillis)
                 rates
             } catch (e: CancellationException) {
+                // Normal coroutine cancellation, not a request failure — propagate, do not report.
                 throw e
             } catch (e: Exception) {
-                // Last-good fallback; null if nothing has ever been cached (caller degrades to EUR).
+                // Report the failure (time-to-failure) under a distinct label, then degrade: fall
+                // back to last-good cache, or null if nothing has ever been cached (caller → EUR).
+                statsReporter.report(StatsAction.LOAD_DETAILS_FAILED, timeProvider.nowMillis() - startMillis)
                 cache?.rates
             }
         }

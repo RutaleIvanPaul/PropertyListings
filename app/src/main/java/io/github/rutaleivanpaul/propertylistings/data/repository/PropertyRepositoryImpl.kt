@@ -47,20 +47,25 @@ class PropertyRepositoryImpl @Inject constructor(
 
         return withContext(ioDispatcher) {
             val startMillis = timeProvider.nowMillis()
-            try {
+            val result = try {
                 val response = propertyApi.getProperties()
                 val properties = PropertyMapper.map(response)
                 cache = properties
-                // Report only on a real, successful fetch; measured request-start → fully-parsed.
-                statsReporter.report(StatsAction.LOAD, timeProvider.nowMillis() - startMillis)
                 DataResult.Success(properties)
             } catch (e: CancellationException) {
+                // Normal coroutine cancellation, not a request failure — propagate, do not report.
                 throw e
             } catch (e: SerializationException) {
                 DataResult.ParseError
             } catch (e: Exception) {
                 DataResult.NetworkError
             }
+            // Telemetry is a side effect: report the outcome under a distinct label, measured to the
+            // moment the call resolved (time-to-parsed on success, time-to-failure on failure). The
+            // DataResult still propagates to the caller unchanged.
+            val action = if (result is DataResult.Success) StatsAction.LOAD else StatsAction.LOAD_FAILED
+            statsReporter.report(action, timeProvider.nowMillis() - startMillis)
+            result
         }
     }
 

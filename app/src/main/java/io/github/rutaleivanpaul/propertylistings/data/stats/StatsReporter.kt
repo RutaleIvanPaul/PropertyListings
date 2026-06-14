@@ -8,13 +8,26 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/** The telemetry events the app reports, paired with the label sent to the stats endpoint. */
+/**
+ * The telemetry events the app reports, paired with the label sent to the stats endpoint.
+ *
+ * Success and failure of the same request use distinct labels (`load` vs `load-failed`) so the two
+ * latency populations are never conflated. This is the only outcome information carried — there is
+ * deliberately no error taxonomy or severity here; a production POST body would carry a structured
+ * outcome/error type instead of encoding it in the label string.
+ */
 enum class StatsAction(val label: String) {
-    /** A properties fetch (initial load and pull-to-refresh). */
+    /** A successful properties fetch (initial load and pull-to-refresh). */
     LOAD("load"),
 
-    /** An exchange-rates fetch made for the detail screen's currency toggle. */
+    /** A failed properties fetch (network or parse failure). */
+    LOAD_FAILED("load-failed"),
+
+    /** A successful exchange-rates fetch made for the detail screen's currency toggle. */
     LOAD_DETAILS("load-details"),
+
+    /** A failed exchange-rates fetch. */
+    LOAD_DETAILS_FAILED("load-details-failed"),
 }
 
 /**

@@ -29,13 +29,19 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the structure and
 
 ## Telemetry
 
-The app measures the client-perceived duration of each real data request (timed from request start
-through to the fully-parsed response) and reports it to the stats endpoint. Reporting is isolated
-in a dedicated `StatsReporter`, runs off the critical path on its own coroutine, and fails silently
-so it can never block or degrade the experience it measures. Cache hits make no network call and so
-report nothing.
+The app measures the client-perceived duration of each real data request and reports it to the stats
+endpoint. Reporting is isolated in a dedicated `StatsReporter`, runs off the critical path on its
+own coroutine, and fails silently so it can never block or degrade the experience it measures. Cache
+hits make no network call and so report nothing.
+
+Both outcomes are reported under distinct action labels — `load`/`load-failed` and
+`load-details`/`load-details-failed` — so success and failure latencies aren't conflated. The
+duration is measured to the moment the call resolved (time-to-parsed on success, time-to-failure on
+failure); a failed call still returns its error to the caller, with the report sent as a side
+effect. The label is the only outcome information carried (no retry, severity, or error taxonomy).
 
 The report is sent as a `GET` with query parameters because that is the shape the provided endpoint
 accepts, and the response is ignored. A production telemetry pipeline would instead **POST a batched
-payload** — multiple measurements in a structured body, with retry and back-pressure — rather than
-one fire-and-forget `GET` per request. This is also noted in code on `StatsApi`.
+payload** — multiple measurements in a structured body that carries the outcome/error type rather
+than encoding it in the label, with retry and back-pressure. This is also noted in code on
+`StatsApi`.

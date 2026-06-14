@@ -86,7 +86,7 @@ class RatesRepositoryImplTest {
     }
 
     @Test
-    fun `a failed refetch falls back to the last-good cache and does not report`() = runTest {
+    fun `a failed refetch falls back to the last-good cache and reports load-details-failed`() = runTest {
         val api = FakeRatesApi(response = sampleResponse)
         val statsApi = RecordingStatsApi()
         val time = MutableTimeProvider(0L)
@@ -99,14 +99,17 @@ class RatesRepositoryImplTest {
         val fallback = repo.getRates()
 
         assertEquals(fresh, fallback)
-        assertEquals(1, statsApi.reports.size) // only the first, successful fetch reported
+        // The successful fetch reports load-details; the failed refetch reports load-details-failed.
+        assertEquals(listOf("load-details", "load-details-failed"), statsApi.reports.map { it.first })
     }
 
     @Test
-    fun `a failure with nothing cached returns null to degrade to EUR-only`() = runTest {
+    fun `a failure with nothing cached returns null and reports load-details-failed`() = runTest {
         val api = FakeRatesApi(error = IOException("rates endpoint down"))
-        val repo = newRepository(api, RecordingStatsApi(), MutableTimeProvider(0L))
+        val statsApi = RecordingStatsApi()
+        val repo = newRepository(api, statsApi, MutableTimeProvider(0L))
 
         assertNull(repo.getRates())
+        assertEquals(listOf("load-details-failed"), statsApi.reports.map { it.first })
     }
 }

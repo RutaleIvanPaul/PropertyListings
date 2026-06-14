@@ -56,19 +56,26 @@ class PropertyRepositoryImplTest {
     }
 
     @Test
-    fun `network failure maps to NetworkError and reports nothing`() = runTest {
+    fun `network failure maps to NetworkError and reports load-failed with time-to-failure`() = runTest {
         val statsApi = RecordingStatsApi()
-        val repo = newRepository(FakePropertyApi(error = IOException("no connectivity")), statsApi)
+        val repo = newRepository(
+            FakePropertyApi(error = IOException("no connectivity")),
+            statsApi,
+            time = FakeTimeProvider(100L, 250L),
+        )
 
         assertEquals(DataResult.NetworkError, repo.getProperties(forceRefresh = false))
-        assertTrue("failed fetch must not report telemetry", statsApi.reports.isEmpty())
+        // The failure is still reported, under the distinct label, with the time-to-failure (150).
+        assertEquals(listOf("load-failed" to 150L), statsApi.reports)
     }
 
     @Test
-    fun `unparsable body maps to ParseError`() = runTest {
-        val repo = newRepository(FakePropertyApi(error = SerializationException("bad json")), RecordingStatsApi())
+    fun `unparsable body maps to ParseError and also reports load-failed`() = runTest {
+        val statsApi = RecordingStatsApi()
+        val repo = newRepository(FakePropertyApi(error = SerializationException("bad json")), statsApi)
 
         assertEquals(DataResult.ParseError, repo.getProperties(forceRefresh = false))
+        assertEquals(listOf("load-failed"), statsApi.reports.map { it.first })
     }
 
     @Test
