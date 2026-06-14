@@ -17,6 +17,13 @@ class HtmlUnescapeTest {
     }
 
     @Test
+    fun `decodes an arbitrary numeric entity beyond common punctuation via the generic path`() {
+        // Proves numeric entities are parsed by code point, not matched against a hardcoded list.
+        assertEquals("€10", HtmlUnescape.unescape("&#8364;10"))
+        assertEquals("€10", HtmlUnescape.unescape("&#x20AC;10"))
+    }
+
+    @Test
     fun `decodes common named entities`() {
         assertEquals("bed & breakfast < > \"q\"", HtmlUnescape.unescape("bed &amp; breakfast &lt; &gt; &quot;q&quot;"))
     }
