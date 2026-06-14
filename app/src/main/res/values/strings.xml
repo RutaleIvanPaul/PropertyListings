@@ -28,6 +28,27 @@
     <string name="property_type_location">%1$s · %2$s, %3$s</string>
     <string name="ratings_count">%1$s ratings</string>
 
+    <!-- Detail screen -->
+    <string name="detail_back_description">Back</string>
+    <string name="detail_loading">Loading details</string>
+    <string name="detail_error_title">Couldn\'t load this property</string>
+    <string name="detail_error_body">Something went wrong. Please try again.</string>
+    <string name="detail_type_district">%1$s · %2$s</string>
+    <string name="detail_price_title">Lowest price per night</string>
+    <string name="detail_currency_selector_description">Display currency</string>
+    <string name="detail_overview_title">Overview</string>
+    <string name="detail_breakdown_title">How guests rate it</string>
+    <string name="detail_breakdown_item_description">%1$s rated %2$s out of 10</string>
+
+    <!-- Rating breakdown categories -->
+    <string name="rating_category_security">Security</string>
+    <string name="rating_category_location">Location</string>
+    <string name="rating_category_staff">Staff</string>
+    <string name="rating_category_fun">Fun</string>
+    <string name="rating_category_cleanliness">Cleanliness</string>
+    <string name="rating_category_facilities">Facilities</string>
+    <string name="rating_category_value">Value</string>
+
     <!-- Property type labels -->
     <string name="property_type_hostel">Hostel</string>
     <string name="property_type_guesthouse">Guesthouse</string>
