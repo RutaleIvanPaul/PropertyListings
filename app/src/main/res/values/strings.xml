@@ -1,4 +1,40 @@
 <resources>
     <string name="app_name">PropertyListings</string>
-    <string name="skeleton_placeholder">Property Listings</string>
+
+    <!-- List screen -->
+    <string name="list_title">Hostels in %1$s</string>
+    <string name="list_title_fallback">Hostels</string>
+
+    <!-- Loading -->
+    <string name="list_loading">Loading properties</string>
+
+    <!-- Empty state -->
+    <string name="list_empty_title">No properties found</string>
+    <string name="list_empty_body">There are no properties to show right now. Pull down to refresh.</string>
+
+    <!-- Error state -->
+    <string name="list_error_title">Something went wrong</string>
+    <string name="list_error_body">We couldn\'t load properties. Check your connection and try again.</string>
+    <string name="action_retry">Retry</string>
+    <string name="list_refresh_failed">Couldn\'t refresh — showing the last results.</string>
+
+    <!-- Property card -->
+    <string name="featured_badge">Featured</string>
+    <string name="featured_badge_description">Featured property</string>
+    <string name="price_per_night">%1$s / night</string>
+    <string name="price_per_night_description">Lowest price %1$s per night</string>
+    <string name="property_location">%1$s, %2$s</string>
+    <string name="property_card_description">%1$s in %2$s</string>
+    <string name="ratings_count">%1$s ratings</string>
+
+    <!-- Rating pill -->
+    <string name="rating_none">No rating</string>
+    <string name="rating_value">%1$s</string>
+    <string name="rating_description">Rated %1$s out of 10, %2$s</string>
+    <string name="rating_description_none">Not yet rated</string>
+    <string name="rating_tier_superb">Superb</string>
+    <string name="rating_tier_fabulous">Fabulous</string>
+    <string name="rating_tier_very_good">Very good</string>
+    <string name="rating_tier_good">Good</string>
+    <string name="rating_tier_fair">Okay</string>
 </resources>
