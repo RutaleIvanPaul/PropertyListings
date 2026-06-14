@@ -1,4 +1,4 @@
-package io.github.rutaleivanpaul.propertylistings.ui.theme
+package io.github.rutaleivanpaul.propertylistings.presentation.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">PropertyListings</string>
+    <string name="skeleton_placeholder">Property Listings</string>
 </resources>
