@@ -4,6 +4,9 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import io.github.rutaleivanpaul.propertylistings.data.remote.api.PropertyApi
+import io.github.rutaleivanpaul.propertylistings.data.remote.api.RatesApi
+import io.github.rutaleivanpaul.propertylistings.data.remote.api.StatsApi
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
@@ -11,14 +14,12 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
+import retrofit2.create
 import javax.inject.Singleton
 
 /**
- * Provides the application-wide networking and serialization singletons.
- *
- * Only the transport infrastructure (JSON parser, HTTP client, Retrofit) is wired here. The
- * concrete API service interfaces, repositories and mappers are introduced in the data-layer
- * milestone; this module exists so the Hilt graph is complete and compiles from the skeleton.
+ * Provides the application-wide networking and serialization singletons plus the Retrofit service
+ * interfaces. Repository bindings live in [RepositoryModule].
  */
 @Module
 @InstallIn(SingletonComponent::class)
@@ -54,4 +55,16 @@ object NetworkModule {
             .client(client)
             .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
             .build()
+
+    @Provides
+    @Singleton
+    fun providePropertyApi(retrofit: Retrofit): PropertyApi = retrofit.create()
+
+    @Provides
+    @Singleton
+    fun provideRatesApi(retrofit: Retrofit): RatesApi = retrofit.create()
+
+    @Provides
+    @Singleton
+    fun provideStatsApi(retrofit: Retrofit): StatsApi = retrofit.create()
 }

@@ -54,5 +54,13 @@ edited.
 
 Request durations are measured client-side and reported to a stats endpoint after each
 network call. Reporting is isolated, runs off the critical path, and fails silently so it
-can never degrade the experience it measures. The provided endpoint accepts a GET; a
-production telemetry pipeline would more appropriately POST a batched payload.
+can never degrade the experience it measures.
+
+Both outcomes are reported, under distinct action labels — `load`/`load-failed` for the property
+fetch and `load-details`/`load-details-failed` for the rates fetch — so success and failure
+latencies are not conflated. The duration is measured to the point the call resolved (time-to-parsed
+on success, time-to-failure on failure). A failed data call still propagates its
+`NetworkError`/`ParseError` to the caller; the telemetry is purely a side effect. The label is the
+only outcome information carried: there is intentionally no retry, no severity, and no error
+taxonomy. The provided endpoint accepts a GET; a production pipeline would POST a batched payload
+that carries a structured outcome/error type rather than encoding it in the label string.

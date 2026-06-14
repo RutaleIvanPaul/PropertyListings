@@ -1,0 +1,13 @@
+{
+  "success": true,
+  "timestamp": 1710460800,
+  "historical": true,
+  "base": "EUR",
+  "date": "2024-03-15",
+  "rates": {
+    "EUR": 1.0,
+    "USD": 1.088993,
+    "GBP": 0.853825,
+    "JPY": 162.4
+  }
+}
