@@ -16,6 +16,40 @@ rates) is expected to change frequently. The cache exists to avoid surfacing an 
 transient refresh failure. Repository interfaces leave room to introduce a persistent cache
 later as a localised change, should offline-across-launches become a requirement.
 
+## Exchange-rate caching and freshness
+
+Property prices are returned in EUR with the property list, so the list never needs the rates
+API. Exchange rates are required only for the currency toggle on the detail screen, so they are
+fetched on demand when a detail screen needs them — not pre-fetched.
+
+A rates repository owns an in-memory, timestamped cache with a short time-to-live (TTL). While
+the cached rates are within the TTL they are reused; once they expire they are re-fetched. If a
+fetch fails, the last-good cached value is used; if nothing has ever been cached, the screen
+degrades gracefully to showing the EUR price only. Because the rates and the prices share the
+same base currency (EUR), conversion is a direct multiply. The clock used for freshness is
+injected so expiry is unit-testable without real delays.
+
+Considered / deferred: a background warm-up of the rates just after the list loads — guarded by
+a single-flight mechanism to prevent duplicate concurrent fetches — was considered to make the
+first currency toggle feel instant. It was deferred because the current scope does not justify
+the added concurrency complexity; the repository interface leaves room to add it later as a
+localised change.
+
+## Rating display
+
+A small number of records carry an `overallRating.overall` of 0, which represents the absence
+of a meaningful score rather than a genuine "zero" rating. These are rendered as "No rating"
+rather than "0.0", so the UI does not imply a property was rated zero. All other values convert
+from the source 1–100 scale to a one-decimal /10 value.
+
+## API endpoint URLs
+
+The upstream gist URLs were pinned to a specific commit of an account that has since been
+renamed (`PedroTrabuloHostelworld` → `pedrotrabulo-hw`), so those exact commit-pinned URLs
+return 404. The gist IDs and data are unchanged. The app therefore targets the commit-less raw
+URLs for the same gists, which always serve the latest revision and do not break when a gist is
+edited.
+
 ## Network performance reporting
 
 Request durations are measured client-side and reported to a stats endpoint after each
