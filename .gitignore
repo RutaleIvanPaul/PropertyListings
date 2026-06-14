@@ -16,4 +16,9 @@ local.properties
 
 # IDE
 .idea/
+.vscode/
+
+# Local working notes — not part of the deliverable
+CLAUDE.md
+/.project-notes/
 
