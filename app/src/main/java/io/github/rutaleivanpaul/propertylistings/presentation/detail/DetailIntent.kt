@@ -1,5 +1,7 @@
 package io.github.rutaleivanpaul.propertylistings.presentation.detail
 
+import io.github.rutaleivanpaul.propertylistings.domain.model.Currency
+
 /**
  * User intents for the property detail screen (MVI).
  *
@@ -13,11 +15,6 @@ sealed interface DetailIntent {
     /** Retry after an error. */
     data object Retry : DetailIntent
 
-    /**
-     * Switch the displayed lowest price to another currency.
-     *
-     * Carries the ISO currency code for now; this becomes a `Currency` domain enum once the
-     * domain model is introduced in the data-layer milestone.
-     */
-    data class SelectCurrency(val currencyCode: String) : DetailIntent
+    /** Switch the displayed lowest price to the given [currency]. */
+    data class SelectCurrency(val currency: Currency) : DetailIntent
 }

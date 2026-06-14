@@ -1,23 +1,37 @@
 package io.github.rutaleivanpaul.propertylistings.presentation.detail
 
+import io.github.rutaleivanpaul.propertylistings.domain.model.Currency
+import io.github.rutaleivanpaul.propertylistings.domain.model.Money
+import io.github.rutaleivanpaul.propertylistings.domain.model.Property
+
 /**
  * Immutable UI state for the property detail screen (MVI).
  *
- * Mirrors the list screen's four mutually-exclusive cases for consistency. Concrete payloads (the
- * selected property and the currently-selected currency price) are attached in the detail-screen
- * milestone; this skeleton fixes only the shape of the state.
+ * There is deliberately no `Empty` case (unlike the list): a property either exists in the cache
+ * that backs this screen or it does not, and a missing property is an error condition (with retry),
+ * not a meaningful "no results" state. Folding "not found" into [Error] keeps the states honest.
  */
 sealed interface DetailUiState {
 
-    /** Loading the selected property's details. */
+    /** Loading the selected property's details and exchange rates. */
     data object Loading : DetailUiState
 
-    /** Details loaded successfully and available to render. */
-    data object Content : DetailUiState
+    /**
+     * Details loaded successfully and available to render.
+     *
+     * @property property the selected property.
+     * @property selectedCurrency the currency the price is currently shown in.
+     * @property displayedPrice the lowest price converted to [selectedCurrency].
+     * @property availableCurrencies the currencies the toggle can offer; collapses to just EUR when
+     *   live rates are unavailable (graceful degrade).
+     */
+    data class Content(
+        val property: Property,
+        val selectedCurrency: Currency,
+        val displayedPrice: Money,
+        val availableCurrencies: List<Currency>,
+    ) : DetailUiState
 
-    /** The requested property could not be found. */
-    data object Empty : DetailUiState
-
-    /** Load failed; the screen offers a retry. */
+    /** Load failed, or the requested property was not found; the screen offers a retry. */
     data object Error : DetailUiState
 }
