@@ -16,6 +16,18 @@
       "overview": "Dublin&#039;s liveliest hostel &amp; a great base.",
       "type": "HOSTEL",
       "address1": "29 Bachelors Walk",
+      "address2": "Dublin 1",
+      "district": { "id": "386", "name": "Temple Bar" },
+      "ratingBreakdown": {
+        "ratingsCount": 46,
+        "security": 84,
+        "location": 95,
+        "staff": 88,
+        "clean": 83,
+        "facilities": 83,
+        "value": 83,
+        "average": 85
+      },
       "imagesGallery": [
         { "prefix": "res.cloudinary.com/test/v1/propertyimages/1/100/", "suffix": "36.jpg" }
       ],

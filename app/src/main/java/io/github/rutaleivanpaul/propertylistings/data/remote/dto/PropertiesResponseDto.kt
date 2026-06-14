@@ -1,5 +1,6 @@
 package io.github.rutaleivanpaul.propertylistings.data.remote.dto
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
@@ -39,7 +40,31 @@ data class PropertyDto(
     val type: String? = null,
     val address1: String? = null,
     val address2: String? = null,
+    val district: DistrictDto? = null,
+    val ratingBreakdown: RatingBreakdownDto? = null,
     val imagesGallery: List<ImageDto?>? = null,
+)
+
+/** Neighbourhood within the city; only [name] is used (e.g. "Temple Bar"). May be `null`/absent. */
+@Serializable
+data class DistrictDto(
+    val name: String? = null,
+)
+
+/**
+ * Per-aspect rating sub-scores, each a 0–100 integer in the payload (parsed/clamped in the mapper).
+ *
+ * `fun` is a Kotlin keyword, so the property is renamed and bound to the JSON key via [SerialName].
+ */
+@Serializable
+data class RatingBreakdownDto(
+    val security: Int? = null,
+    val location: Int? = null,
+    val staff: Int? = null,
+    @SerialName("fun") val funScore: Int? = null,
+    val clean: Int? = null,
+    val facilities: Int? = null,
+    val value: Int? = null,
 )
 
 @Serializable

@@ -3,11 +3,14 @@ package io.github.rutaleivanpaul.propertylistings.data.mapper
 import io.github.rutaleivanpaul.propertylistings.data.remote.dto.ImageDto
 import io.github.rutaleivanpaul.propertylistings.data.remote.dto.PropertiesResponseDto
 import io.github.rutaleivanpaul.propertylistings.data.remote.dto.PropertyDto
+import io.github.rutaleivanpaul.propertylistings.data.remote.dto.RatingBreakdownDto
 import io.github.rutaleivanpaul.propertylistings.domain.converter.RatingConverter
 import io.github.rutaleivanpaul.propertylistings.domain.model.Currency
 import io.github.rutaleivanpaul.propertylistings.domain.model.Money
 import io.github.rutaleivanpaul.propertylistings.domain.model.Property
 import io.github.rutaleivanpaul.propertylistings.domain.model.PropertyType
+import io.github.rutaleivanpaul.propertylistings.domain.model.RatingCategory
+import io.github.rutaleivanpaul.propertylistings.domain.model.RatingScore
 
 /**
  * Maps the tolerant [PropertiesResponseDto] to strict domain [Property] models.
@@ -53,9 +56,40 @@ object PropertyMapper {
             type = PropertyType.fromApi(type),
             city = city,
             country = country,
+            district = district?.name?.trim()?.takeIf { it.isNotBlank() }.orEmpty(),
+            address = formatAddress(),
+            ratingBreakdown = ratingBreakdown.toRatingScores(),
             imageUrls = imagesGallery.orEmpty().mapNotNull { it?.toUrl() },
         )
     }
+
+    /** Joins the non-blank address lines into a single display string (e.g. "29 Bachelors Walk, Dublin 1"). */
+    private fun PropertyDto.formatAddress(): String =
+        listOfNotNull(
+            address1?.trim()?.takeIf { it.isNotBlank() },
+            address2?.trim()?.takeIf { it.isNotBlank() },
+        ).joinToString(separator = ", ")
+
+    /**
+     * Maps the raw sub-scores to clamped [RatingScore]s in display order, dropping any absent
+     * category. Each value is run through [RatingConverter] (clamp 0..100, /10), so the breakdown is
+     * validated the same way as the overall rating.
+     */
+    private fun RatingBreakdownDto?.toRatingScores(): List<RatingScore> {
+        if (this == null) return emptyList()
+        return listOfNotNull(
+            security?.toScore(RatingCategory.SECURITY),
+            location?.toScore(RatingCategory.LOCATION),
+            staff?.toScore(RatingCategory.STAFF),
+            funScore?.toScore(RatingCategory.FUN),
+            clean?.toScore(RatingCategory.CLEANLINESS),
+            facilities?.toScore(RatingCategory.FACILITIES),
+            value?.toScore(RatingCategory.VALUE),
+        )
+    }
+
+    private fun Int.toScore(category: RatingCategory): RatingScore =
+        RatingScore(category = category, scoreOutOf10 = RatingConverter.toRatingOutOf10(this))
 
     /** Builds a full image URL from the host+path [ImageDto.prefix] and filename [ImageDto.suffix]. */
     private fun ImageDto.toUrl(): String? {
