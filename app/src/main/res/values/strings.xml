@@ -21,6 +21,7 @@
     <!-- Property card -->
     <string name="featured_badge">Featured</string>
     <string name="featured_badge_description">Featured property</string>
+    <string name="property_image_description">Photo of %1$s</string>
     <string name="price_per_night">%1$s / night</string>
     <string name="price_per_night_description">Lowest price %1$s per night</string>
     <string name="property_location">%1$s, %2$s</string>

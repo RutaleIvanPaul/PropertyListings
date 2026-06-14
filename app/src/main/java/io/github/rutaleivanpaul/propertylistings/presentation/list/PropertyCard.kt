@@ -1,5 +1,6 @@
 package io.github.rutaleivanpaul.propertylistings.presentation.list
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -7,6 +8,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
@@ -17,12 +19,17 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import io.github.rutaleivanpaul.propertylistings.R
 import io.github.rutaleivanpaul.propertylistings.domain.model.Property
 import io.github.rutaleivanpaul.propertylistings.domain.model.PropertyType
@@ -30,13 +37,16 @@ import io.github.rutaleivanpaul.propertylistings.presentation.common.MoneyFormat
 import io.github.rutaleivanpaul.propertylistings.presentation.common.labelRes
 import java.util.Locale
 
+/** Square thumbnail: a 1:1 crop sits naturally with landscape photos (no stretch) and stays compact. */
+private val ThumbnailSize = 92.dp
+
 /**
- * A single scannable property card: name and featured badge up top, location beneath, then the
- * rating pill (with its quality label and rating count) paired against a prominent price.
+ * A single scannable property card: a square leading thumbnail, then name, type, location, a rating
+ * caption, and a bottom row pairing the graded rating pill with a prominent price.
  *
- * Orange is used only where it earns attention — the featured badge and the price — keeping the
- * accent sparing. The whole card is one touch target; Compose merges the children's semantics so a
- * screen reader announces the property in one pass.
+ * The thumbnail is vertically centred so the card stays balanced whatever the text height, and the
+ * rating tier/count live on their own caption line so the pill and price share one tidy row rather
+ * than fighting for width. Orange is reserved for the featured badge and the price.
  */
 @Composable
 fun PropertyCard(
@@ -51,81 +61,127 @@ fun PropertyCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         modifier = modifier.fillMaxWidth(),
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(verticalAlignment = Alignment.Top) {
-                Text(
-                    text = property.name,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f),
-                )
-                if (property.isFeatured) {
-                    Spacer(Modifier.width(8.dp))
-                    FeaturedBadge()
-                }
-            }
-
-            Spacer(Modifier.height(4.dp))
-            // Subtitle leads with the property type (Hostel / Guesthouse / Hotel) so the mixed
-            // dataset reads honestly; OTHER is omitted to avoid a redundant "Property ·" prefix.
-            val subtitle = if (property.type == PropertyType.OTHER) {
-                stringResource(R.string.property_location, property.city, property.country)
-            } else {
-                stringResource(
-                    R.string.property_type_location,
-                    stringResource(property.type.labelRes()),
-                    property.city,
-                    property.country,
-                )
-            }
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(12.dp),
+        ) {
+            // The API has no cover/hero field, so the first gallery image is used as the
+            // representative thumbnail (see DECISIONS.md). May be empty → neutral placeholder.
+            PropertyThumbnail(
+                imageUrl = property.imageUrls.firstOrNull(),
+                propertyName = property.name,
             )
 
-            Spacer(Modifier.height(16.dp))
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    RatingPill(rating = property.ratingOutOf10)
-                    if (property.hasRating) {
+            Spacer(Modifier.width(12.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.Top) {
+                    Text(
+                        text = property.name,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f),
+                    )
+                    if (property.isFeatured) {
                         Spacer(Modifier.width(8.dp))
-                        RatingMeta(property)
+                        FeaturedBadge()
                     }
                 }
-                PriceLabel(formattedPrice = MoneyFormatter.format(property.price))
+
+                Spacer(Modifier.height(3.dp))
+                PropertySubtitle(property)
+
+                if (property.hasRating) {
+                    Spacer(Modifier.height(6.dp))
+                    RatingCaption(property)
+                }
+
+                Spacer(Modifier.height(10.dp))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    RatingPill(rating = property.ratingOutOf10)
+                    PriceLabel(formattedPrice = MoneyFormatter.format(property.price))
+                }
             }
         }
     }
 }
 
-/** The tier label plus, when known, the number of ratings — secondary context beside the pill. */
+/**
+ * Square leading thumbnail.
+ *
+ * The neutral background reserves the space and shows while the image loads, on failure, or when
+ * there is no URL — never a broken-image icon — so nothing reflows when the bitmap swaps in. The
+ * image is decorative when absent (null description).
+ */
 @Composable
-private fun RatingMeta(property: Property) {
-    val tierLabel = stringResource(RatingTier.forRating(property.ratingOutOf10).labelRes)
-    Column {
-        Text(
-            text = tierLabel,
-            style = MaterialTheme.typography.labelMedium,
-            fontWeight = FontWeight.Medium,
+private fun PropertyThumbnail(
+    imageUrl: String?,
+    propertyName: String,
+    modifier: Modifier = Modifier,
+) {
+    val description = imageUrl?.let { stringResource(R.string.property_image_description, propertyName) }
+    AsyncImage(
+        model = ImageRequest.Builder(LocalContext.current)
+            .data(imageUrl)
+            .crossfade(true)
+            .build(),
+        contentDescription = description,
+        contentScale = ContentScale.Crop,
+        modifier = modifier
+            .size(ThumbnailSize)
+            .clip(RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant),
+    )
+}
+
+/** Type + location, e.g. "Hostel · Dublin, Ireland"; OTHER drops the redundant "Property ·" prefix. */
+@Composable
+private fun PropertySubtitle(property: Property) {
+    val text = if (property.type == PropertyType.OTHER) {
+        stringResource(R.string.property_location, property.city, property.country)
+    } else {
+        stringResource(
+            R.string.property_type_location,
+            stringResource(property.type.labelRes()),
+            property.city,
+            property.country,
         )
-        if (property.numberOfRatings > 0) {
-            Text(
-                text = stringResource(
-                    R.string.ratings_count,
-                    String.format(Locale.US, "%,d", property.numberOfRatings),
-                ),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
     }
+    Text(
+        text = text,
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+    )
+}
+
+/** Tier label + rating count, e.g. "Fabulous · 11,133 ratings" — context that frees the pill row. */
+@Composable
+private fun RatingCaption(property: Property) {
+    val tierLabel = stringResource(RatingTier.forRating(property.ratingOutOf10).labelRes)
+    val text = if (property.numberOfRatings > 0) {
+        val count = stringResource(
+            R.string.ratings_count,
+            String.format(Locale.US, "%,d", property.numberOfRatings),
+        )
+        "$tierLabel · $count"
+    } else {
+        tierLabel
+    }
+    Text(
+        text = text,
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+    )
 }
 
 /** The lowest nightly price — the loudest element on the card, in the brand accent. */
@@ -134,9 +190,10 @@ private fun PriceLabel(formattedPrice: String) {
     val description = stringResource(R.string.price_per_night_description, formattedPrice)
     Text(
         text = stringResource(R.string.price_per_night, formattedPrice),
-        style = MaterialTheme.typography.titleLarge,
+        style = MaterialTheme.typography.titleMedium,
         fontWeight = FontWeight.Bold,
         color = MaterialTheme.colorScheme.primary,
+        maxLines = 1,
         modifier = Modifier.semantics { contentDescription = description },
     )
 }

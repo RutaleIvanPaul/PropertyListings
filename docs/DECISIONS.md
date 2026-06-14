@@ -35,6 +35,26 @@ first currency toggle feel instant. It was deferred because the current scope do
 the added concurrency complexity; the repository interface leaves room to add it later as a
 localised change.
 
+## List card imagery
+
+Each list card shows a fixed-size square (92dp) leading thumbnail, loaded with Coil and vertically
+centred so the card stays balanced. A 1:1 crop sits naturally with the landscape source photos (no
+stretch) and keeps the card compact (~5 per screen), preserving the scannability the brand is built
+on — the thumbnail is a visual anchor, not a hero. The rating tier and count sit on a caption line
+so the graded pill and the prominent price share one tidy bottom row.
+
+The API exposes a `imagesGallery` array per property but **no cover/hero field** — nothing marks
+which image best represents the listing. We therefore use the **first gallery image**
+(`imagesGallery[0]`) as the representative thumbnail; this is a documented assumption, not a derived
+truth. The production Cloudinary gallery is used, not the `images[]` array (a staging host that may
+not resolve). The thumbnail's box reserves its space with a neutral background, so there is no
+layout shift: the neutral fill shows while loading and on any failure (missing URL, network error) —
+never a broken-image icon.
+
+Deliberately out of scope here (kept for later): a full-bleed hero image, a carousel / multiple
+images, blur-hash, and progressive loading. A hero image plus a shared-element list→detail
+transition are deferred to the standout phase.
+
 ## Rating display
 
 A small number of records carry an `overallRating.overall` of 0, which represents the absence
