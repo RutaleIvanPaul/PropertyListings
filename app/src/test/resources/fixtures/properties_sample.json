@@ -1,0 +1,52 @@
+{
+  "location": {
+    "city": { "id": 1, "name": "Dublin", "idCountry": 9, "country": "Ireland" },
+    "region": null
+  },
+  "locationEn": { "city": { "name": "Dublin", "country": "Ireland" } },
+  "sortOrder": null,
+  "pagination": { "next": "", "prev": "", "numberOfPages": 1, "totalNumberOfItems": 5 },
+  "properties": [
+    {
+      "id": 1,
+      "name": "Abbey Court Hostel",
+      "isFeatured": true,
+      "overallRating": { "overall": 87, "numberOfRatings": "11133" },
+      "lowestPricePerNight": { "value": "14.18", "currency": "EUR" },
+      "overview": "Dublin&#039;s liveliest hostel &amp; a great base.",
+      "type": "HOSTEL",
+      "address1": "29 Bachelors Walk",
+      "imagesGallery": [
+        { "prefix": "res.cloudinary.com/test/v1/propertyimages/1/100/", "suffix": "36.jpg" }
+      ],
+      "starRating": 3
+    },
+    {
+      "id": 5575,
+      "name": "Egans House",
+      "isFeatured": false,
+      "overallRating": { "overall": 0, "numberOfRatings": "137" },
+      "lowestPricePerNight": { "value": "30.00", "currency": "EUR" },
+      "overview": "A quiet guesthouse.",
+      "type": "GUESTHOUSE",
+      "imagesGallery": []
+    },
+    {
+      "id": null,
+      "name": "Missing Id Hostel",
+      "lowestPricePerNight": { "value": "20.00", "currency": "EUR" }
+    },
+    {
+      "id": 42,
+      "name": "Negative Price Inn",
+      "overallRating": { "overall": 55, "numberOfRatings": "10" },
+      "lowestPricePerNight": { "value": "-5.00", "currency": "EUR" },
+      "type": "HOTEL"
+    },
+    {
+      "id": 99,
+      "name": "Unparseable Price Hostel",
+      "lowestPricePerNight": { "value": "N/A", "currency": "EUR" }
+    }
+  ]
+}
