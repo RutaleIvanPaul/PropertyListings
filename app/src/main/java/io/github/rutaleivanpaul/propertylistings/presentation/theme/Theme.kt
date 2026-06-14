@@ -1,58 +1,50 @@
 package io.github.rutaleivanpaul.propertylistings.presentation.theme
 
-import android.app.Activity
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
-
-private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
-)
 
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+    primary = BrandOrange,
+    onPrimary = OnBrandOrange,
+    background = LightBackground,
+    onBackground = OnLight,
+    surface = LightSurface,
+    onSurface = OnLight,
+    surfaceVariant = LightSurfaceVariant,
+    onSurfaceVariant = OnLightVariant,
+    outline = LightOutline,
 )
 
+private val DarkColorScheme = darkColorScheme(
+    primary = BrandOrangeDark,
+    onPrimary = OnLight,
+    background = DarkBackground,
+    onBackground = OnDark,
+    surface = DarkSurface,
+    onSurface = OnDark,
+    surfaceVariant = DarkSurfaceVariant,
+    onSurfaceVariant = OnDarkVariant,
+    outline = DarkOutline,
+)
+
+/**
+ * App theme.
+ *
+ * Dynamic colour (Material You) is deliberately **not** used: the brand identity is a specific
+ * vibrant orange on neutral surfaces, and letting the device wallpaper recolour the app would
+ * undermine that. The scheme is therefore fixed, with a light and a dark variant.
+ */
 @Composable
 fun PropertyListingsTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
-    }
-
     MaterialTheme(
-        colorScheme = colorScheme,
+        colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme,
         typography = Typography,
-        content = content
+        content = content,
     )
 }
