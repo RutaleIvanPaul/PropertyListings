@@ -25,7 +25,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.github.rutaleivanpaul.propertylistings.R
 import io.github.rutaleivanpaul.propertylistings.domain.model.Property
+import io.github.rutaleivanpaul.propertylistings.domain.model.PropertyType
 import io.github.rutaleivanpaul.propertylistings.presentation.common.MoneyFormatter
+import io.github.rutaleivanpaul.propertylistings.presentation.common.labelRes
 import java.util.Locale
 
 /**
@@ -66,8 +68,20 @@ fun PropertyCard(
             }
 
             Spacer(Modifier.height(4.dp))
+            // Subtitle leads with the property type (Hostel / Guesthouse / Hotel) so the mixed
+            // dataset reads honestly; OTHER is omitted to avoid a redundant "Property ·" prefix.
+            val subtitle = if (property.type == PropertyType.OTHER) {
+                stringResource(R.string.property_location, property.city, property.country)
+            } else {
+                stringResource(
+                    R.string.property_type_location,
+                    stringResource(property.type.labelRes()),
+                    property.city,
+                    property.country,
+                )
+            }
             Text(
-                text = stringResource(R.string.property_location, property.city, property.country),
+                text = subtitle,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

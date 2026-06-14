@@ -2,8 +2,8 @@
     <string name="app_name">PropertyListings</string>
 
     <!-- List screen -->
-    <string name="list_title">Hostels in %1$s</string>
-    <string name="list_title_fallback">Hostels</string>
+    <string name="list_title">Stays in %1$s</string>
+    <string name="list_title_fallback">Stays</string>
 
     <!-- Loading -->
     <string name="list_loading">Loading properties</string>
@@ -24,8 +24,14 @@
     <string name="price_per_night">%1$s / night</string>
     <string name="price_per_night_description">Lowest price %1$s per night</string>
     <string name="property_location">%1$s, %2$s</string>
-    <string name="property_card_description">%1$s in %2$s</string>
+    <string name="property_type_location">%1$s · %2$s, %3$s</string>
     <string name="ratings_count">%1$s ratings</string>
+
+    <!-- Property type labels -->
+    <string name="property_type_hostel">Hostel</string>
+    <string name="property_type_guesthouse">Guesthouse</string>
+    <string name="property_type_hotel">Hotel</string>
+    <string name="property_type_other">Property</string>
 
     <!-- Rating pill -->
     <string name="rating_none">No rating</string>
