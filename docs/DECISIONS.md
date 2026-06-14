@@ -84,3 +84,23 @@ on success, time-to-failure on failure). A failed data call still propagates its
 only outcome information carried: there is intentionally no retry, no severity, and no error
 taxonomy. The provided endpoint accepts a GET; a production pipeline would POST a batched payload
 that carries a structured outcome/error type rather than encoding it in the label string.
+
+## Data-boundary error handling (defensive catch)
+
+The repository (the data boundary) catches defensively so an unforeseen exception degrades to an
+error state for the user rather than crashing the app. This was hardened after an uncaught
+`SecurityException` (missing `INTERNET` permission) surfaced on device: it was a `RuntimeException`,
+not an `IOException`, so it bypassed the network/parse handling entirely and killed the process.
+
+Handling order at the boundary: re-throw `CancellationException` first (preserve structured
+concurrency); map the anticipated `SerializationException` → parse error and `IOException` /
+`HttpException` → network error as before; and for any *other* exception take an "unexpected" branch.
+That branch fails soft for the user (degrades to the generic error state) but loud for the
+developer: it logs at `ERROR` with the full stack trace — a caught exception does not auto-dump to
+logcat the way a crash does, so the explicit log is what restores visibility — and reports a
+**distinct** telemetry label (`load-failed-unexpected` / `load-details-failed-unexpected`) so
+unanticipated failures are their own signal rather than being swallowed among normal network
+failures. This is still only the expected-vs-unexpected distinction: no error taxonomy, severity, or
+retry. In production, the unexpected branch is also where the exception would be recorded as a
+non-fatal to a crash-reporting tool (e.g. `Crashlytics.recordException`). The broad catch lives at
+the data boundary only.

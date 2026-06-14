@@ -6,10 +6,14 @@ import io.github.rutaleivanpaul.propertylistings.data.stats.StatsAction
 import io.github.rutaleivanpaul.propertylistings.data.stats.StatsReporter
 import io.github.rutaleivanpaul.propertylistings.di.IoDispatcher
 import io.github.rutaleivanpaul.propertylistings.domain.model.Rates
+import android.util.Log
 import io.github.rutaleivanpaul.propertylistings.domain.repository.RatesRepository
 import io.github.rutaleivanpaul.propertylistings.domain.time.TimeProvider
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.SerializationException
+import retrofit2.HttpException
+import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.coroutines.cancellation.CancellationException
@@ -48,25 +52,44 @@ class RatesRepositoryImpl @Inject constructor(
 
         return withContext(ioDispatcher) {
             val startMillis = timeProvider.nowMillis()
-            try {
+            var action = StatsAction.LOAD_DETAILS
+            val rates = try {
                 val response = ratesApi.getRates()
-                val rates = RatesMapper.map(response)
-                cache = CachedRates(rates, timeProvider.nowMillis())
-                statsReporter.report(StatsAction.LOAD_DETAILS, timeProvider.nowMillis() - startMillis)
-                rates
+                val mapped = RatesMapper.map(response)
+                cache = CachedRates(mapped, timeProvider.nowMillis())
+                mapped
             } catch (e: CancellationException) {
                 // Normal coroutine cancellation, not a request failure — propagate, do not report.
                 throw e
+            } catch (e: SerializationException) {
+                action = StatsAction.LOAD_DETAILS_FAILED
+                cache?.rates
+            } catch (e: IOException) {
+                action = StatsAction.LOAD_DETAILS_FAILED
+                cache?.rates
+            } catch (e: HttpException) {
+                action = StatsAction.LOAD_DETAILS_FAILED
+                cache?.rates
             } catch (e: Exception) {
-                // Report the failure (time-to-failure) under a distinct label, then degrade: fall
-                // back to last-good cache, or null if nothing has ever been cached (caller → EUR).
-                statsReporter.report(StatsAction.LOAD_DETAILS_FAILED, timeProvider.nowMillis() - startMillis)
+                // Defensive boundary catch: an unforeseen exception degrades gracefully instead of
+                // crashing. Fail soft for the user, loud for the developer — log at ERROR with the
+                // full stack trace (a caught exception does NOT auto-dump like a crash), and report a
+                // distinct telemetry label so it isn't swallowed among normal failures. In production
+                // this is where we'd also record a non-fatal (e.g. Crashlytics.recordException).
+                Log.e(TAG, "Unexpected failure loading rates; degrading to last-good/EUR-only.", e)
+                action = StatsAction.LOAD_DETAILS_FAILED_UNEXPECTED
                 cache?.rates
             }
+            // Report only on a real network attempt (cache hits return earlier). Degrade to last-good
+            // cache on any failure, or null if nothing has ever been cached (caller → EUR-only).
+            statsReporter.report(action, timeProvider.nowMillis() - startMillis)
+            rates
         }
     }
 
     private companion object {
+        const val TAG = "RatesRepository"
+
         /**
          * Exchange rates are published roughly daily, so a short window keeps prices
          * current within a session while avoiding a refetch on rapid back-and-forth
