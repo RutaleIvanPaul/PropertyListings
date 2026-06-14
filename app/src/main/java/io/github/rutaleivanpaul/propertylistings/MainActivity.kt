@@ -4,24 +4,17 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import dagger.hilt.android.AndroidEntryPoint
+import io.github.rutaleivanpaul.propertylistings.presentation.list.ListScreen
 import io.github.rutaleivanpaul.propertylistings.presentation.theme.PropertyListingsTheme
 
 /**
  * Single activity host for the app's Compose UI.
  *
- * Annotated with [AndroidEntryPoint] so Hilt can inject the screen-level dependencies that are
- * added in later milestones. For now it shows a placeholder shell; the list and detail screens
- * and their navigation are wired up in the screen milestones.
+ * Annotated with [AndroidEntryPoint] so Hilt can supply the screens' ViewModels. For M3 it hosts
+ * the list screen directly; the navigation graph to the detail screen is wired in M4 — until then,
+ * a property tap is received here as a no-op.
  */
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -30,18 +23,14 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             PropertyListingsTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    SkeletonPlaceholder(modifier = Modifier.padding(innerPadding))
-                }
+                AppContent()
             }
         }
     }
 }
 
-/** Temporary content shown by the empty skeleton until the real screens are built. */
+/** Root composable. Navigation to detail arrives in M4; for now the tap callback is a placeholder. */
 @Composable
-private fun SkeletonPlaceholder(modifier: Modifier = Modifier) {
-    Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text(text = stringResource(id = R.string.skeleton_placeholder))
-    }
+private fun AppContent() {
+    ListScreen(onNavigateToDetail = { /* Navigation wired in M4. */ })
 }

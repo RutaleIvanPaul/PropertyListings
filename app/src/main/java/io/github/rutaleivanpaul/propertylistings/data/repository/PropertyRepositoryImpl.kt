@@ -7,11 +7,14 @@ import io.github.rutaleivanpaul.propertylistings.data.stats.StatsReporter
 import io.github.rutaleivanpaul.propertylistings.di.IoDispatcher
 import io.github.rutaleivanpaul.propertylistings.domain.DataResult
 import io.github.rutaleivanpaul.propertylistings.domain.model.Property
+import android.util.Log
 import io.github.rutaleivanpaul.propertylistings.domain.repository.PropertyRepository
 import io.github.rutaleivanpaul.propertylistings.domain.time.TimeProvider
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerializationException
+import retrofit2.HttpException
+import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.coroutines.cancellation.CancellationException
@@ -47,6 +50,7 @@ class PropertyRepositoryImpl @Inject constructor(
 
         return withContext(ioDispatcher) {
             val startMillis = timeProvider.nowMillis()
+            var action = StatsAction.LOAD
             val result = try {
                 val response = propertyApi.getProperties()
                 val properties = PropertyMapper.map(response)
@@ -56,17 +60,34 @@ class PropertyRepositoryImpl @Inject constructor(
                 // Normal coroutine cancellation, not a request failure — propagate, do not report.
                 throw e
             } catch (e: SerializationException) {
+                action = StatsAction.LOAD_FAILED
                 DataResult.ParseError
+            } catch (e: IOException) {
+                action = StatsAction.LOAD_FAILED
+                DataResult.NetworkError
+            } catch (e: HttpException) {
+                action = StatsAction.LOAD_FAILED
+                DataResult.NetworkError
             } catch (e: Exception) {
+                // Defensive boundary catch: an unforeseen exception degrades to the error state
+                // instead of crashing. Fail soft for the user, loud for the developer — log at ERROR
+                // with the full stack trace (a caught exception does NOT auto-dump like a crash), and
+                // report a distinct telemetry label so it isn't swallowed among normal failures. In
+                // production this is where we'd also record a non-fatal (e.g. Crashlytics.recordException).
+                Log.e(TAG, "Unexpected failure loading properties; degrading to error state.", e)
+                action = StatsAction.LOAD_FAILED_UNEXPECTED
                 DataResult.NetworkError
             }
-            // Telemetry is a side effect: report the outcome under a distinct label, measured to the
-            // moment the call resolved (time-to-parsed on success, time-to-failure on failure). The
+            // Telemetry is a side effect: report the outcome under its label, measured to the moment
+            // the call resolved (time-to-parsed on success, time-to-failure on failure). The
             // DataResult still propagates to the caller unchanged.
-            val action = if (result is DataResult.Success) StatsAction.LOAD else StatsAction.LOAD_FAILED
             statsReporter.report(action, timeProvider.nowMillis() - startMillis)
             result
         }
+    }
+
+    private companion object {
+        const val TAG = "PropertyRepository"
     }
 
     override fun cachedProperty(id: Int): Property? = cache?.firstOrNull { it.id == id }

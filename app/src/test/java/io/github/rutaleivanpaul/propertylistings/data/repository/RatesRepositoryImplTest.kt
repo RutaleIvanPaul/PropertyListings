@@ -112,4 +112,15 @@ class RatesRepositoryImplTest {
         assertNull(repo.getRates())
         assertEquals(listOf("load-details-failed"), statsApi.reports.map { it.first })
     }
+
+    @Test
+    fun `an unexpected runtime exception degrades gracefully and reports load-details-failed-unexpected`() = runTest {
+        val api = FakeRatesApi(error = IllegalStateException("unexpected"))
+        val statsApi = RecordingStatsApi()
+        val repo = newRepository(api, statsApi, MutableTimeProvider(0L))
+
+        // Degrades to EUR-only (null) rather than propagating, and flags the unexpected signal.
+        assertNull(repo.getRates())
+        assertEquals(listOf("load-details-failed-unexpected"), statsApi.reports.map { it.first })
+    }
 }

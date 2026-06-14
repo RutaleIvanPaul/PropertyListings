@@ -79,6 +79,19 @@ class PropertyRepositoryImplTest {
     }
 
     @Test
+    fun `unexpected runtime exception degrades to an error result and reports load-failed-unexpected`() = runTest {
+        val statsApi = RecordingStatsApi()
+        // An exception the boundary doesn't anticipate (not network/parse), like the on-device
+        // SecurityException that motivated the defensive catch.
+        val repo = newRepository(FakePropertyApi(error = IllegalStateException("unexpected")), statsApi)
+
+        // (a) degrades to an error result rather than propagating out of the repository.
+        assertEquals(DataResult.NetworkError, repo.getProperties(forceRefresh = false))
+        // (b) fires the distinct unexpected-failure telemetry label.
+        assertEquals(listOf("load-failed-unexpected"), statsApi.reports.map { it.first })
+    }
+
+    @Test
     fun `empty payload succeeds with an empty list`() = runTest {
         val repo = newRepository(FakePropertyApi(response = PropertiesResponseDto(properties = emptyList())), RecordingStatsApi())
 

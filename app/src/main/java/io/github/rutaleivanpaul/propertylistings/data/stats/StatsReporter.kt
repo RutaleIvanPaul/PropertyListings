@@ -20,14 +20,28 @@ enum class StatsAction(val label: String) {
     /** A successful properties fetch (initial load and pull-to-refresh). */
     LOAD("load"),
 
-    /** A failed properties fetch (network or parse failure). */
+    /** An *anticipated* failed properties fetch — a network or parse failure. */
     LOAD_FAILED("load-failed"),
+
+    /**
+     * An *unanticipated* failed properties fetch — an exception we did not expect at the boundary
+     * (i.e. not network or parse). Distinct so these surface as their own signal rather than hiding
+     * among normal network failures. Still just the expected-vs-unexpected distinction — no error
+     * taxonomy, severity, or retry implied.
+     */
+    LOAD_FAILED_UNEXPECTED("load-failed-unexpected"),
 
     /** A successful exchange-rates fetch made for the detail screen's currency toggle. */
     LOAD_DETAILS("load-details"),
 
-    /** A failed exchange-rates fetch. */
+    /** An *anticipated* failed exchange-rates fetch — a network or parse failure. */
     LOAD_DETAILS_FAILED("load-details-failed"),
+
+    /**
+     * An *unanticipated* failed exchange-rates fetch — see [LOAD_FAILED_UNEXPECTED]; the same
+     * expected-vs-unexpected distinction for the rates flow.
+     */
+    LOAD_DETAILS_FAILED_UNEXPECTED("load-details-failed-unexpected"),
 }
 
 /**
