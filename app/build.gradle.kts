@@ -53,6 +53,17 @@ android {
     }
 }
 
+// Unit tests run against the debug variant only. There is no build-type-specific source, and the
+// Robolectric Compose render tests rely on the empty host activity from `ui-test-manifest`, a
+// debug-only test dependency — so the release unit-test task can never resolve that activity and a
+// second identical run would add CI time for zero extra coverage. `./gradlew test` therefore runs
+// just `testDebugUnitTest`.
+androidComponents {
+    beforeVariants(selector().withBuildType("release")) { variantBuilder ->
+        (variantBuilder as com.android.build.api.variant.HasUnitTestBuilder).enableUnitTest = false
+    }
+}
+
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
