@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -126,7 +125,12 @@ private fun ListScaffold(
     }
 }
 
-/** Initial load: a centred spinner with a spoken label. No pull-to-refresh during the first load. */
+/**
+ * Initial load: a shimmering skeleton that previews the card layout (thumbnail + text-line
+ * placeholders), so the loading state shows the shape of the content to come rather than a bare
+ * spinner. The whole block carries a single spoken "loading" description; the placeholders
+ * themselves are decorative. No pull-to-refresh during the first load.
+ */
 @Composable
 private fun LoadingState(modifier: Modifier = Modifier) {
     val description = stringResource(R.string.list_loading)
@@ -134,9 +138,8 @@ private fun LoadingState(modifier: Modifier = Modifier) {
         modifier = modifier
             .fillMaxSize()
             .semantics { contentDescription = description },
-        contentAlignment = Alignment.Center,
     ) {
-        CircularProgressIndicator()
+        PropertyListSkeleton()
     }
 }
 
