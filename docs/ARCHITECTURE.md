@@ -64,8 +64,8 @@ currency plus a `Map<Currency, Double>` of units-per-base.
 the two failure modes the UI reacts to distinctly; per-item failures are absorbed earlier (see Data).
 
 **Pure logic** lives in two stateless objects so it is trivially unit-testable with no Android:
-- `RatingConverter` — clamps the source 0–100 value, divides by 10, rounds HALF_UP to one decimal;
-  `null` → `0.0` (rendered as "No rating").
+- `RatingConverter` — clamps the raw rating to `0..100`, divides by 10, rounds HALF_UP to one
+  decimal; `null` → `0.0` (rendered as "No rating").
 - `CurrencyConverter` — converts a `Money` to a target currency via the base rate; returns `null` if
   a required rate is missing, leaving the missing-rate policy to the caller.
 
