@@ -37,8 +37,11 @@ import io.github.rutaleivanpaul.propertylistings.presentation.common.MoneyFormat
 import io.github.rutaleivanpaul.propertylistings.presentation.common.labelRes
 import java.util.Locale
 
-/** Square thumbnail: a 1:1 crop sits naturally with landscape photos (no stretch) and stays compact. */
-private val ThumbnailSize = 92.dp
+/**
+ * Square thumbnail: a 1:1 crop sits naturally with landscape photos (no stretch) and stays compact.
+ * Shared with [PropertyCardSkeleton] so the loading placeholder matches the real card exactly.
+ */
+internal val ThumbnailSize = 92.dp
 
 /**
  * A single scannable property card: a square leading thumbnail, then name, type, location, a rating
