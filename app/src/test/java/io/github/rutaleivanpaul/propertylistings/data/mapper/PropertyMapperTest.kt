@@ -3,6 +3,7 @@ package io.github.rutaleivanpaul.propertylistings.data.mapper
 import io.github.rutaleivanpaul.propertylistings.data.remote.dto.PropertiesResponseDto
 import io.github.rutaleivanpaul.propertylistings.domain.model.Currency
 import io.github.rutaleivanpaul.propertylistings.domain.model.PropertyType
+import io.github.rutaleivanpaul.propertylistings.domain.model.RatingCategory
 import io.github.rutaleivanpaul.propertylistings.util.loadFixture
 import io.github.rutaleivanpaul.propertylistings.util.testJson
 import org.junit.Assert.assertEquals
@@ -39,6 +40,37 @@ class PropertyMapperTest {
             listOf("https://res.cloudinary.com/test/v1/propertyimages/1/100/36.jpg"),
             abbey.imageUrls,
         )
+    }
+
+    @Test
+    fun `maps the detail extras - joined address, district and clamped breakdown in order`() {
+        val abbey = mapFixture().first { it.id == 1 }
+
+        assertEquals("29 Bachelors Walk, Dublin 1", abbey.address)
+        assertEquals("Temple Bar", abbey.district)
+
+        // Sub-scores convert 0..100 -> /10 like the overall rating, in declaration order; the absent
+        // "fun" category is dropped rather than defaulted to zero.
+        assertEquals(
+            listOf(
+                RatingCategory.SECURITY,
+                RatingCategory.LOCATION,
+                RatingCategory.STAFF,
+                RatingCategory.CLEANLINESS,
+                RatingCategory.FACILITIES,
+                RatingCategory.VALUE,
+            ),
+            abbey.ratingBreakdown.map { it.category },
+        )
+        assertEquals(9.5, abbey.ratingBreakdown.first { it.category == RatingCategory.LOCATION }.scoreOutOf10, 0.0)
+    }
+
+    @Test
+    fun `detail extras default to empty when the API omits them`() {
+        val egans = mapFixture().first { it.id == 5575 }
+        assertEquals("", egans.address)
+        assertEquals("", egans.district)
+        assertTrue(egans.ratingBreakdown.isEmpty())
     }
 
     @Test
