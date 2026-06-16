@@ -117,7 +117,7 @@ meaningful score rather than a genuine "zero" rating. These are rendered as "No 
 "0.0", so the UI does not imply a property was rated zero. All other values convert from the source
 1–100 scale to a one-decimal `/10` value (HALF_UP). The score also drives a quality-graded pill
 (Option A): the tier (`RatingTier.forRating`) sets the pill's colour and label, giving an at-a-glance
-trust signal that is the convention in hostel apps.
+trust signal that is the convention in accommodation-booking apps.
 
 ## Theme: fixed brand palette, no dynamic colour
 
