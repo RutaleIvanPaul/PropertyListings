@@ -1,6 +1,6 @@
 # Property Listings
 
-A small Android app that fetches hostel property data from a remote API and presents it as a
+A small Android app that fetches property data from a remote API and presents it as a
 scrollable list and a detail screen, with live currency conversion of the nightly price.
 
 - **List** — every property with its name, featured status, a quality-graded `/10` rating pill,
